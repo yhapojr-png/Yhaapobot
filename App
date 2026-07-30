@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Yhaapo — Membership</title>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=IBM+Plex+Mono:wght@400;500;600&display=swap');
+
+  :root{
+    --bg: #121214;
+    --surface: #1b1b1e;
+    --surface-raised: #212124;
+    --gold: #E8B54C;
+    --gold-deep: #B8862F;
+    --ink: #F5F1E8;
+    --muted: #8A8780;
+    --line: #2E2C28;
+    --danger: #D9705C;
+  }
+
+  *{ box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+  html, body{
+    margin:0; padding:0;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: 'IBM Plex Mono', monospace;
+    min-height: 100vh;
+  }
+
+  .wrap{
+    max-width: 480px;
+    margin: 0 auto;
+    padding: 20px 16px 140px;
+  }
+
+  /* ---------- Header ---------- */
+  header{
+    display:flex;
+    align-items: baseline;
+    justify-content: space-between;
+    margin-bottom: 18px;
+  }
+  header .brand{
+    font-family: 'Fraunces', serif;
+    font-weight: 600;
+    font-size: 22px;
+    letter-spacing: -0.01em;
+  }
+  header .brand span{ color: var(--gold); }
+  header .badge{
+    font-size: 11px;
+    color: var(--muted);
+    border: 1px solid var(--line);
+    padding: 4px 8px;
+    border-radius: 20px;
+  }
+
+  /* ---------- Membership hero ticket ---------- */
+  .hero-ticket{
+    position: relative;
+    background: linear-gradient(155deg, var(--surface-raised), var(--surface));
+    border: 1px solid var(--line);
+    border-radius: 18px;
+    padding: 22px 20px 18px;
+    margin-bottom: 26px;
+    overflow: hidden;
+  }
+  .hero-ticket::before{
+    content:"";
+    position:absolute; inset:0;
+    background:
+      radial-gradient(circle at 18% 30%, rgba(232,181,76,0.10), transparent 55%);
+    pointer-events:none;
+  }
+  .hero-eyebrow{
+    font-size: 11px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 8px;
+  }
+  .hero-title{
+    font-family: 'Fraunces', serif;
+    font-size: 26px;
+    font-weight: 600;
+    line-height: 1.15;
+    margin-bottom: 4px;
+  }
+  .hero-sub{
+    font-size: 12.5px;
+    color: var(--muted);
+    line-height: 1.5;
+  }
+  .hero-status{
+    margin-top: 16px;
+    display:flex;
+    align-items:center;
+    justify-content: space-between;
+    border-top: 1px dashed var(--line);
+    padding-top: 14px;
+  }
+  .hero-status .label{ font-size: 11px; color: var(--muted); letter-spacing: 0.06em; text-transform: uppercase; }
+  .hero-status .value{ font-family:'Fraunces', serif; font-size: 17px; font-weight: 600; color: var(--gold); }
+
+  /* perforation dots between hero and body */
+  .perf{
+    height: 1px;
+    margin: 0 -20px 20px;
+    background-image: radial-gradient(circle, var(--bg) 2.2px, transparent 2.2px);
+    background-size: 14px 1px;
+    background-position: 0 0;
+    position: relative;
+    top: -19px;
+  }
+
+  section.group{ margin-bottom: 26px; }
+  .group-title{
+    font-family: 'Fraunces', serif;
+    font-size: 15px;
+    font-weight: 600;
+    margin-bottom: 3px;
+  }
+  .group-hint{
+    font-size: 11.5px;
+    color: var(--muted);
+    margin-bottom: 12px;
+  }
+
+  /* ---------- Plan ticket cards ---------- */
+  .plans{ display:flex; flex-direction:column; gap: 10px; }
+
+  .plan{
+    position: relative;
+    display:flex;
+    align-items:center;
+    gap: 14px;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    padding: 14px 16px;
+    cursor: pointer;
+    transition: border-color .15s ease, background .15s ease, transform .1s ease;
+  }
+  .plan:active{ transform: scale(0.99); }
+  .plan.selected{
+    border-color: var(--gold-deep);
+    background: linear-gradient(155deg, rgba(232,181,76,0.10), var(--surface));
+  }
+  .plan .tick{
+    width: 20px; height: 20px;
+    border-radius: 50%;
+    border: 1.5px solid var(--line);
+    flex-shrink: 0;
+    display:flex; align-items:center; justify-content:center;
+    font-size: 12px;
+  }
+  .plan.selected .tick{
+    border-color: var(--gold);
+    background: var(--gold);
+    color: #14130f;
+  }
+  .plan .info{ flex: 1; min-width:0; }
+  .plan .name{
+    font-family: 'Fraunces', serif;
+    font-size: 16px;
+    font-weight: 600;
+  }
+  .plan .desc{ font-size: 11px; color: var(--muted); margin-top: 2px; }
+  .plan .price{
+    font-size: 15px;
+    font-weight: 600;
+    white-space: nowrap;
+  }
+  .plan .price small{ color: var(--muted); font-weight:400; font-size: 10.5px; }
+  .plan .tag{
+    position:absolute;
+    top: -8px; right: 14px;
+    background: var(--gold);
+    color: #14130f;
+    font-size: 9.5px;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    padding: 2.5px 8px;
+    border-radius: 20px;
+    text-transform: uppercase;
+  }
+
+  /* ---------- Add-ons ---------- */
+  .addons{ display:grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .addon{
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    padding: 12px 14px;
+    cursor: pointer;
+    transition: border-color .15s ease;
+  }
+  .addon.selected{ border-color: var(--gold-deep); }
+  .addon .icon{ font-size: 18px; margin-bottom: 6px; display:block; }
+  .addon .name{ font-size: 12.5px; font-weight: 600; font-family:'IBM Plex Mono'; }
+  .addon .price{ font-size: 11px; color: var(--muted); margin-top: 3px; }
+  .addon .add-btn{
+    margin-top: 8px;
+    font-size: 10.5px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--gold);
+    font-weight: 600;
+  }
+  .addon.selected .add-btn::before{ content: "✓ "; }
+  .addon.selected .add-btn{ color: var(--ink); }
+
+  /* ---------- Sticky checkout stub ---------- */
+  .stub{
+    position: fixed;
+    left: 0; right: 0; bottom: 0;
+    background: var(--surface-raised);
+    border-top: 1px solid var(--line);
+    padding: 14px 16px calc(14px + env(safe-area-inset-bottom));
+  }
+  .stub-inner{
+    max-width: 480px;
+    margin: 0 auto;
+    display:flex;
+    align-items:center;
+    justify-content: space-between;
+    gap: 14px;
+  }
+  .stub .total-label{ font-size: 10.5px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.08em; }
+  .stub .total-value{ font-family:'Fraunces', serif; font-size: 20px; font-weight: 700; }
+  .stub button{
+    background: var(--gold);
+    color: #14130f;
+    border: none;
+    font-family: 'IBM Plex Mono', monospace;
+    font-weight: 600;
+    font-size: 13.5px;
+    padding: 13px 20px;
+    border-radius: 12px;
+    cursor: pointer;
+    letter-spacing: 0.02em;
+  }
+  .stub button:disabled{ background: var(--line); color: var(--muted); }
+
+  @media (prefers-reduced-motion: reduce){
+    .plan, .addon{ transition: none; }
+  }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+
+  <header>
+    <div class="brand">yhaapo<span>.</span></div>
+    <div class="badge" id="statusBadge">no active plan</div>
+  </header>
+
+  <div class="hero-ticket">
+    <div class="hero-eyebrow">Membership</div>
+    <div class="hero-title">Pick your access tier.</div>
+    <div class="hero-sub">One plan, cancel any time. Add-ons stack on top of whatever you choose below.</div>
+    <div class="hero-status">
+      <div>
+        <div class="label">Selected</div>
+        <div class="value" id="selectedPlanName">None yet</div>
+      </div>
+      <div>
+        <div class="label">Renews</div>
+        <div class="value" id="renewLabel">—</div>
+      </div>
+    </div>
+  </div>
+  <div class="perf"></div>
+
+  <section class="group">
+    <div class="group-title">Plans</div>
+    <div class="group-hint">Tap a tier to select it. You can change this any time.</div>
+    <div class="plans" id="plans"></div>
+  </section>
+
+  <section class="group">
+    <div class="group-title">Add-ons</div>
+    <div class="group-hint">Optional extras billed alongside your plan.</div>
+    <div class="addons" id="addons"></div>
+  </section>
+
+</div>
+
+<div class="stub">
+  <div class="stub-inner">
+    <div>
+      <div class="total-label">Total / month</div>
+      <div class="total-value" id="totalValue">$0.00</div>
+    </div>
+    <button id="subscribeBtn" disabled>Select a plan</button>
+  </div>
+</div>
+
+<script>
+  const tg = window.Telegram && window.Telegram.WebApp ? window.Telegram.WebApp : null;
+  if (tg) { tg.ready(); tg.expand(); }
+
+  const PLANS = [
+    { id:'basic',   name:'Basic',   price:4.99,  desc:'Core features, one seat', tag:null },
+    { id:'pro',     name:'Pro',     price:9.99,  desc:'Everything in Basic, plus priority queue', tag:'Popular' },
+    { id:'premium', name:'Premium', price:19.99, desc:'Full access, unlimited seats', tag:null },
+  ];
+
+  const ADDONS = [
+    { id:'storage', icon:'🗂️', name:'Extra Storage', price:2.99 },
+    { id:'support', icon:'⚡', name:'Priority Support', price:3.99 },
+  ];
+
+  let selectedPlan = null;
+  let selectedAddons = new Set();
+
+  function money(n){ return '$' + n.toFixed(2); }
+
+  function renderPlans(){
+    const el = document.getElementById('plans');
+    el.innerHTML = PLANS.map(p => `
+      <div class="plan ${selectedPlan===p.id?'selected':''}" data-id="${p.id}">
+        ${p.tag ? `<div class="tag">${p.tag}</div>` : ''}
+        <div class="tick">${selectedPlan===p.id ? '✓' : ''}</div>
+        <div class="info">
+          <div class="name">${p.name}</div>
+          <div class="desc">${p.desc}</div>
+        </div>
+        <div class="price">${money(p.price)}<br><small>/mo</small></div>
+      </div>
+    `).join('');
+    el.querySelectorAll('.plan').forEach(node=>{
+      node.addEventListener('click', ()=>{
+        selectedPlan = node.dataset.id;
+        if (tg) tg.HapticFeedback.selectionChanged();
+        renderAll();
+      });
+    });
+  }
+
+  function renderAddons(){
+    const el = document.getElementById('addons');
+    el.innerHTML = ADDONS.map(a => `
+      <div class="addon ${selectedAddons.has(a.id)?'selected':''}" data-id="${a.id}">
+        <span class="icon">${a.icon}</span>
+        <div class="name">${a.name}</div>
+        <div class="price">${money(a.price)}/mo</div>
+        <div class="add-btn">${selectedAddons.has(a.id) ? 'Added' : 'Add'}</div>
+      </div>
+    `).join('');
+    el.querySelectorAll('.addon').forEach(node=>{
+      node.addEventListener('click', ()=>{
+        const id = node.dataset.id;
+        if (selectedAddons.has(id)) selectedAddons.delete(id); else selectedAddons.add(id);
+        if (tg) tg.HapticFeedback.selectionChanged();
+        renderAll();
+      });
+    });
+  }
+
+  function renderSummary(){
+    const plan = PLANS.find(p=>p.id===selectedPlan);
+    const planTotal = plan ? plan.price : 0;
+    const addonsTotal = [...selectedAddons].reduce((sum,id)=> sum + ADDONS.find(a=>a.id===id).price, 0);
+    const total = planTotal + addonsTotal;
+
+    document.getElementById('selectedPlanName').textContent = plan ? plan.name : 'None yet';
+    document.getElementById('statusBadge').textContent = plan ? 'plan selected' : 'no active plan';
+    document.getElementById('renewLabel').textContent = plan ? 'Monthly' : '—';
+    document.getElementById('totalValue').textContent = money(total);
+
+    const btn = document.getElementById('subscribeBtn');
+    if (plan){
+      btn.disabled = false;
+      btn.textContent = `Subscribe · ${money(total)}/mo`;
+    } else {
+      btn.disabled = true;
+      btn.textContent = 'Select a plan';
+    }
+
+    if (tg){
+      if (plan){
+        tg.MainButton.setText(`SUBSCRIBE · ${money(total)}/MO`);
+        tg.MainButton.show();
+        tg.MainButton.enable();
+      } else {
+        tg.MainButton.hide();
+      }
+    }
+  }
+
+  function renderAll(){
+    renderPlans();
+    renderAddons();
+    renderSummary();
+  }
+
+  function submit(){
+    const plan = PLANS.find(p=>p.id===selectedPlan);
+    if (!plan) return;
+    const payload = {
+      plan: plan.id,
+      addons: [...selectedAddons],
+      total: (plan.price + [...selectedAddons].reduce((s,id)=>s+ADDONS.find(a=>a.id===id).price,0)).toFixed(2)
+    };
+    if (tg && tg.sendData){
+      tg.sendData(JSON.stringify(payload));
+    } else {
+      alert('Subscribed:\n' + JSON.stringify(payload, null, 2));
+    }
+  }
+
+  document.getElementById('subscribeBtn').addEventListener('click', submit);
+  if (tg) tg.onEvent('mainButtonClicked', submit);
+
+  renderAll();
+</script>
+
+</body>
+</html>
