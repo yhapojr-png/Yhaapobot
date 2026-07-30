@@ -1,0 +1,17 @@
+{
+  "name": "yhaapobot-server",
+  "version": "1.0.0",
+  "description": "Yhaapobot backend: opens the mini app and takes Telegram Stars payments",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.19.2",
+    "node-telegram-bot-api": "^0.66.0",
+    "dotenv": "^16.4.5"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
