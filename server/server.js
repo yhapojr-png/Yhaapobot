@@ -48,7 +48,8 @@ bot.onText(/\/start/, (msg) => {
   const chatId = msg.chat.id;
   bot.sendMessage(chatId, "Let's get you set up 🎟️\n\nTap below to choose a plan.", {
     reply_markup: {
-      inline_keyboard: [[{ text: 'View Plans', web_app: { url: MINI_APP_URL } }]],
+      keyboard: [[{ text: 'View Plans', web_app: { url: MINI_APP_URL } }]],
+      resize_keyboard: true,
     },
   });
 });
