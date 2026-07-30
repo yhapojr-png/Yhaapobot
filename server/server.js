@@ -98,22 +98,37 @@ bot.on('message', async (msg) => {
 
   console.log(`Sending invoice: plan=${payload.plan}, addons=${JSON.stringify(addonIds)}, totalStars=${totalStars}`);
 
+  console.log(`Creating invoice link: plan=${payload.plan}, addons=${JSON.stringify(addonIds)}, totalStars=${totalStars}`);
+
   try {
-    await bot.sendInvoice(
-      chatId,
-      `Yhaapo — ${plan.name} membership`,
-      `Monthly access: ${descriptionParts.join(' + ')}`,
-      JSON.stringify({ plan: payload.plan, addons: addonIds }), // invoice payload, echoed back on payment
-      '', // provider_token — must be empty string for Telegram Stars
-      'XTR', // currency code for Telegram Stars
-      [{ label: descriptionParts.join(' + '), amount: totalStars }], // exactly one price line for Stars
-      {
-        subscription_period: SUBSCRIPTION_PERIOD_SECONDS, // makes this a recurring monthly charge
-      }
-    );
-    console.log('sendInvoice succeeded for chat', chatId);
+    // subscription_period is only supported by createInvoiceLink, not sendInvoice —
+    // so for recurring Stars payments we build a link first, then send it as a Pay button.
+    const invoiceUrl = await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/createInvoiceLink`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        title: `Yhaapo — ${plan.name} membership`,
+        description: `Monthly access: ${descriptionParts.join(' + ')}`,
+        payload: JSON.stringify({ plan: payload.plan, addons: addonIds }),
+        provider_token: '', // empty for Telegram Stars
+        currency: 'XTR',
+        prices: [{ label: descriptionParts.join(' + '), amount: totalStars }],
+        subscription_period: SUBSCRIPTION_PERIOD_SECONDS,
+      }),
+    }).then((r) => r.json());
+
+    if (!invoiceUrl.ok) {
+      throw new Error(JSON.stringify(invoiceUrl));
+    }
+
+    await bot.sendMessage(chatId, `Ready to subscribe: ${plan.name}${addonLines.length ? ' + ' + addonLines.map((a) => a.name).join(' + ') : ''} — ${totalStars} Stars/month`, {
+      reply_markup: {
+        inline_keyboard: [[{ text: `Pay ${totalStars} ⭐️/month`, url: invoiceUrl.result }]],
+      },
+    });
+    console.log('Invoice link sent for chat', chatId);
   } catch (err) {
-    console.error('sendInvoice failed:', err.response ? JSON.stringify(err.response.body) : err.message);
+    console.error('createInvoiceLink failed:', err.message);
     bot.sendMessage(chatId, "Couldn't create the payment — please try again in a moment.");
   }
 });
